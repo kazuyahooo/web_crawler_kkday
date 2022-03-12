@@ -3,6 +3,11 @@ import requests, json, csv, time
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 
+tags_file = open('./data/tags.json', 'r', encoding='utf-8').read()
+cities_file = open('./data/cities.json', 'r', encoding='utf-8').read()
+tags = json.loads(tags_file)
+cities = json.loads(cities_file)
+
 class KKDAY():
     # option: 1 > all countries, 2 > specified cities
     def __init__(self, city_num, option=1):
@@ -21,7 +26,12 @@ class KKDAY():
                 url = f"https://www.kkday.com/zh-tw/product/ajax_productlist/?country=&city={city_code}&keyword=&availstartdate=&availenddate=&cat=&time=&glang=%E4%B8%AD%E6%96%87&sort=popularity&page={each_page}&row=100&fprice=*&eprice=*&precurrency=TWD"
                 resp = requests.get(url, headers=headers)
             activities = resp.json()["data"]
-            
+            self.collect_data(activities, result)
+            time.sleep(10)
+        #return json.dumps(result, indent = 4, ensure_ascii=False)
+        return result    
+
+    def collect_data(self, activities, result):
             for activity in activities:
                 title = activity["name"] # 票券名稱
                 link = activity["url"] # 票券詳細內容連結
@@ -29,13 +39,13 @@ class KKDAY():
                 booking_date = activity["earliest_sale_date"] # 最早可使用日期
                 rating_count = activity["rating_count"]	 # 評價人數
                 rating_star = activity["rating_star"] # 評價星級
-                country = activity["countries"] #國家
-                cities = activity["cities"] # 城市
-                introduction = activity["introduction"] # 介紹
-                result.append(dict(title=title, introduction=introduction, link=link, price=price, booking_date=booking_date, rating_star=rating_star, rating_count=rating_count,country = country, cities=cities,source="KKday"))
-            time.sleep(10)
-        #return json.dumps(result, indent = 4, ensure_ascii=False)
-        return result
+                country = activity["countries"][0]['name'] # 國家
+                cities = [elm['name'] for elm in activity["cities"]] # 城市
+                introduction = activity["introduction"].replace('\n','') # 介紹
+                cat_key = [tags[elm] for elm in activity['cat_key']]
+                result.append(dict(title=title, introduction=introduction, link=link, price=price, booking_date=booking_date, rating_star=rating_star, rating_count=rating_count,country = country, cities=cities,cat_key=cat_key))
+
+        
 
 # class Klook():
 #     def __init__(self, city_num):
@@ -59,21 +69,24 @@ class KKDAY():
 #             print(elm.select_one('span').getText())
 #         #印出排好版的HTML架構
 #         #print(soup.prettify())
-# ua = UserAgent(use_cache_server=False)
 # present = Klook('test')
 # present.get_resp()
 
+ua = UserAgent(use_cache_server=False)
 total = list()
-cities = {'台北':'A01-001-00001', '台中':'A01-001-00002', '台南':'A01-001-00003', '高雄':'A01-001-00004', '花蓮':'A01-001-00005', '新北市':'A01-001-00006', '平溪':'A01-001-00007', '桃園':'A01-001-00008', '新竹':'A01-001-00009', '苗栗':'A01-001-00010', '彰化':'A01-001-00011', '南投':'A01-001-00012', '雲林':'A01-001-00013', '嘉義':'A01-001-00014', '屏東':'A01-001-00015', '墾丁':'A01-001-00016', '宜蘭':'A01-001-00017', '台東':'A01-001-00018', '澎湖':'A01-001-00019', '金門':'A01-001-00020', '馬祖':'A01-001-00021', '綠島':'A01-001-00023', '小琉球':'A01-001-00024', '蘭嶼':'A01-001-00025', '基隆':'A01-001-00026'}
-#for city, num in cities.items():
-present = KKDAY('test')
+present = KKDAY('all')
 total = [elm for elm in present.get_resp() if elm not in total]
 print("Crawler is done!")
 try:
-    with open('./data/output.csv', 'w') as f:
+    with open('./data/output.csv', 'w', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=total[0].keys())
         writer.writeheader()
         for elm in total:
             writer.writerow(elm)
 except IOError:
-    print('Something went wrong!')
+    print('Something went wrong with csv file!')
+try:
+    with open('./data/output.json', 'w', encoding='utf-8') as f:
+        json.dump(total, f, indent = 4, ensure_ascii = False)
+except IOError:
+    print('Something went wrong with json file!')
