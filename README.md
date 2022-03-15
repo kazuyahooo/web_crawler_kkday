@@ -8,6 +8,7 @@ This is my first assignment in Web Intelligence and Message Understanding.
     - Use the link in the header as the request url
 
 - Final step: know that the parameters represent the meaning, you can find everything you want on KKday!
+
 ## Problems
 
 - fake_useragent module not connecting properly - IndexError: list index out of range
@@ -22,3 +23,4 @@ This is my first assignment in Web Intelligence and Message Understanding.
   ```python
   # -*- coding: utf-8 -*-
   ```
+- I could not judge exactly the activity's language now QQ. (use langid package filter and manual detect)

@@ -7,8 +7,13 @@ name = "pypi"
 beautifulsoup4 = "*"
 requests = "*"
 fake-useragent = "*"
+langid = "*"
+pandas = "*"
+seaborn = "*"
+matplotlib = "*"
 
 [dev-packages]
+ipykernel = "*"
 
 [requires]
 python_version = "3.9"
