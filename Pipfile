@@ -11,6 +11,7 @@ langid = "*"
 pandas = "*"
 seaborn = "*"
 matplotlib = "*"
+html5lib = "*"
 
 [dev-packages]
 ipykernel = "*"
